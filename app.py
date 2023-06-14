@@ -1,11 +1,17 @@
-import sqlite3
-from datetime import datetime, timedelta
 from flask import Flask, jsonify, request
+from datetime import datetime, timedelta
+import psycopg2
+from urllib.parse import urlparse
 
 app = Flask(__name__)
 
 # Define the database connection parameters
-database = 'database.db'
+url = urlparse("postgres://steps_db_user:XkrYy851IYCaZRu6HVlPlS5myhzRjtab@dpg-ci0tlp1mbg5ffcg721v0-a.oregon-postgres.render.com/steps_db")
+database = url.path[1:]
+user = url.username
+password = url.password
+host = url.hostname
+port = url.port
 
 # Define the API endpoint that will retrieve the average energy production and consumption data
 @app.route('/energy-data/average', methods=['GET'])
@@ -14,25 +20,30 @@ def get_average_energy_data():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     # Connect to the database
-    conn = sqlite3.connect(database)
+    conn = psycopg2.connect(
+        database=database,
+        user=user,
+        password=password,
+        host=host,
+        port=port
+    )
     # Execute the SQL query and retrieve the data
     cursor = conn.cursor()
     if start_date is None and end_date is None:
         # If no date range is specified, retrieve average data for the last 14 days
         query = """
-        SELECT AVG(EnergyProduction), AVG(EnergyConsumption)
-        FROM StationStatus
-        WHERE Date >= ?
+        SELECT AVG("EnergyProduction"), AVG("EnergyConsumption")
+        FROM "StationStatus"
+        WHERE "Date" >= %s
         """
         start_date = datetime.now() - timedelta(days=14)
-        start_date = start_date.strftime('%m/%d/%Y')
         cursor.execute(query, (start_date,))
     else:
         # If start and end dates are specified, retrieve average data for the date range
         query = """
-        SELECT AVG(EnergyProduction), AVG(EnergyConsumption)
-        FROM StationStatus
-        WHERE Date BETWEEN ? AND ?
+        SELECT AVG("EnergyProduction"), AVG("EnergyConsumption")
+        FROM "StationStatus"
+        WHERE "Date" BETWEEN %s AND %s
         """
         start_date = datetime.strptime(start_date, '%m/%d/%Y')
         end_date = datetime.strptime(end_date, '%m/%d/%Y')
@@ -55,17 +66,23 @@ def get_energy_consumption_data():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     # Connect to the database
-    conn = sqlite3.connect(database)
+    conn = psycopg2.connect(
+        database=database,
+        user=user,
+        password=password,
+        host=host,
+        port=port
+    )
     # Execute the SQL query and retrieve the data
     cursor = conn.cursor()
     query = """
-    SELECT Date, EnergyConsumption
-    FROM StationStatus
+    SELECT "Date", "EnergyConsumption"
+    FROM "StationStatus"
     """
     if start_date and end_date:
         # If start and end dates are specified, add a WHERE clause to the query to filter by date range
         query += """
-        WHERE Date BETWEEN ? AND ?
+        WHERE "Date" BETWEEN %s AND %s
         """
         start_date = datetime.strptime(start_date, '%m/%d/%Y')
         end_date = datetime.strptime(end_date, '%m/%d/%Y')
@@ -92,17 +109,23 @@ def get_energy_production_data():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     # Connect to the database
-    conn = sqlite3.connect(database)
+    conn = psycopg2.connect(
+        database=database,
+        user=user,
+        password=password,
+        host=host,
+        port=port
+    )
     # Execute the SQL query and retrieve the data
     cursor = conn.cursor()
     query = """
-    SELECT Date, EnergyProduction
-    FROM StationStatus
+    SELECT "Date", "EnergyProduction"
+    FROM "StationStatus"
     """
     if start_date and end_date:
-        # If start and end dates are specified, add a WHERE clause to the query to filter by date range
+        # If start and end dates are specified, add a WHERE clause to the query to filterby date range
         query += """
-        WHERE Date BETWEEN ? AND ?
+        WHERE "Date" BETWEEN %s AND %s
         """
         start_date = datetime.strptime(start_date, '%m/%d/%Y')
         end_date = datetime.strptime(end_date, '%m/%d/%Y')

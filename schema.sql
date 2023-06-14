@@ -4,7 +4,7 @@ CREATE TABLE "__EFMigrationsHistory" (
 );
 
 CREATE TABLE "Articles" (
-"id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+"id" SERIAL PRIMARY KEY NOT NULL,
 "photoLink" TEXT,
 "discription" TEXT,
 "BTN" TEXT
@@ -19,7 +19,7 @@ PRIMARY KEY ("userId")
 );
 
 CREATE TABLE "Products" (
-"id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+"id" SERIAL PRIMARY KEY NOT NULL,
 "photo" TEXT,
 "discription" TEXT NOT NULL,
 "link" TEXT
